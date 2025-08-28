@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:15
+    container_name: streamsync-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: streamsync
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: always
+
+  backend:
+    build: ./backend
+    container_name: streamsync-backend
+    env_file:
+      - .env
+    ports:
+      - "4000:4000"
+    depends_on:
+      - db
+    restart: always
+
+  frontend:
+    build: ./frontend/streamsync-frontend
+    container_name: streamsync-frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    restart: always
+
+volumes:
+  db-data:
